@@ -2,6 +2,43 @@ library(shiny)
 library(dplyr)
 library(leaflet)
 
+shape_file_location <- "C:/Users/Hill_T/OneDrive - Florida Department of Environmental Protection/Desktop/SEACAR Shapefiles/"
+
+# Sample Locations
+point <- st_read(paste0(shape_file_location,"SAV_SampleLocations6june2023/seacar_dbo_vw_SampleLocation_Point.shp"))
+
+# AP and NERR shapefiles
+AP_shp <- st_read(paste0(shape_file_location,"APs/Florida_Aquatic_Preserves.shp"))
+NERR_shp <- st_read(paste0(shape_file_location, "NERRs/Florida_National_Estuarine_Resarch_Reserves__NERR__Boundaries.shp"))
+
+# Load subsetted and filtered SAV4 (output from SAV script)
+SAV4 <- readRDS("data/SAV4.rds")
+
+###############
+## FUNCTIONS ##
+###############
+
+# Allows location of shapefile for each MA
+find_shape <- function(ma){
+  if (grepl("National Estuarine", ma, fixed = TRUE)){
+    shape_file <- NERR_shp %>% filter(SITE_NAME==ma)
+  } else if (grepl("Aquatic Preserve", ma, fixed = TRUE)) {
+    shape_file <- AP_shp %>% filter(LONG_NAME==ma)
+  }
+  return(shape_file)
+}
+
+# Gets coordinate min and max from shapefile
+# This allows for accurately setting view on the map
+get_shape_coordinates <- function(ma_shape){
+  bbox_list <- lapply(st_geometry(ma_shape), st_bbox)
+  maxmin <- as.data.frame(matrix(unlist(bbox_list),nrow=nrow(ma_shape)))
+  names(maxmin) <- names(bbox_list[[1]])
+  return(maxmin)
+}
+
+# plots the data if return = "maps",
+# else it returns dataframe containing ProgramID, coordinates, & sample locations
 get_ma_data <- function(ma, return="data"){
   # locate shape file for given MA
   ma_shape <- find_shape(ma)
@@ -58,6 +95,7 @@ get_ma_data <- function(ma, return="data"){
 
 managed_areas <- sort(unique(SAV4$ManagedAreaName))
 
+# excluding managedareas without coordinate data or which lack shapefiles
 ma_exclude <- c("Florida Keys National Marine Sanctuary","Indian River-Malabar to Vero Beach Aquatic Preserve",
                 "Indian River-Vero Beach to Ft. Pierce Aquatic Preserve", "Banana River Aquatic Preserve",
                 "Cockroach Bay Aquatic Preserve", "Mosquito Lagoon Aquatic Preserve","Nature Coast Aquatic Preserve",
@@ -109,7 +147,7 @@ server <- function(input, output, session){
   
   observe({
     
-    updateSliderInput(session = session, "yearslider", value=min(colorPalette()$years),
+    updateSliderInput(session = session, "yearslider",
                       min = min(colorPalette()$years),
                       max = max(colorPalette()$years),
                       step = 1)
