@@ -75,14 +75,12 @@ boundary_map <- leaflet(df_separated) %>%
             values = ~oimmp_boundaries$Region) %>%
   addMapPane("background", zIndex = 400) %>%
   addMapPane("foreground", zIndex = 500) %>%
-  addPolygons(data=AP_shp, color="#4e809c", weight = 1, smoothFactor = 0.5, opacity = 1.0, fillOpacity = 0.2,
-              group="AP Boundary", options = pathOptions(pane = "background")) %>%
-  addPolygons(data=NERR_shp, color="#fc515c", weight = 1, smoothFactor = 0.5, opacity = 1.0, fillOpacity = 0.2,
-              group="NERR Boundary", options = pathOptions(pane = "background")) %>%
+  addPolygons(data=orcp_shp, color="#4e809c", weight = 1, smoothFactor = 0.5, opacity = 1.0, fillOpacity = 0.2,
+              group="ORCP Boundaries", options = pathOptions(pane = "background")) %>%
   addPolygons(data=oimmp_boundaries, color = "#F0F0F0", weight = 1, smoothFactor = 0.5, opacity = 1.0, fillOpacity = 0.4, fillColor = ~oimmp_pal(Region), 
               group="OIMMP Boundary", options = pathOptions(pane = "background")) %>%
   addLayersControl(
-    overlayGroups = c("AP Boundary", "NERR Boundary", "OIMMP Boundary"),
+    overlayGroups = c("ORCP Boundaries", "OIMMP Boundary"),
     baseGroups = c("Default", "Positron by CartoDB"),
     options = layersControlOptions(collapsed = FALSE)) %>%
   addCircleMarkers(lat=~Latitude_D, lng=~Longitude_, color=~pal2(ProgramID),
@@ -91,6 +89,6 @@ boundary_map <- leaflet(df_separated) %>%
                    label = ~label,
                    options = pathOptions(pane = "foreground"))
 
-saveWidget(boundary_map %>% hideGroup(c("NERR Boundary", "AP Boundary", "OIMMP Boundary")), file="Oyster_All_programs_full_info.html")
+saveWidget(boundary_map %>% hideGroup(c("ORCP Boundaries", "OIMMP Boundary")), file="Oyster_All_programs_full_info.html")
 
-# boundary_map %>% hideGroup(c("NERR Boundary", "AP Boundary", "OIMMP Boundary"))
+# boundary_map %>% hideGroup(c("ORCP Boundaries", "OIMMP Boundary"))
